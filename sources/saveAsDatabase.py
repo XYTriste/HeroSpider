@@ -6,6 +6,8 @@ import re
 
 import Spider
 
+import datetime
+
 heroDB = pymysql.connect(host='localhost', user='root', password='sa', port=3306)  # 链接数据库
 cursor = heroDB.cursor()  # 获取数据库的游标
 
@@ -86,21 +88,43 @@ def table_isExists():
         return False
 
 
+def update_data(table, keys, values):
+    if table is 'hero':  # 对hero表的更新(以后有时间可以修改为匹配文件中发生更新的行,只对发生更新的行对应的数据进行更新)
+        formatData = []
+        for key, value in zip(keys, values):
+            if isinstance(value, list):
+                value = value[0]
+            print(type(key))
+            formatData.append(str(key + '=' + '\'' + value + '\''))
+        formatData = ",".join(formatData)
+        print(formatData)
+        updateSql = 'UPDATE ' + table + ' SET ' + formatData + ' WHERE ' + list(keys)[0] + ' = ' + list(values)[0]
+        try:
+            if cursor.execute(updateSql):
+                print('Update Successful')
+                heroDB.commit()
+        except:
+            print('Update Failed')
+            heroDB.rollback()
+
+
 def main():
     Spider.getData()
     with open("..\\resources\\heroList.json", "r", encoding="utf8") as f:
         heroJsonStr = json.loads(f.read())
 
-        cursor.execute("SELECT * FROM information_schema.SCHEMATA where SCHEMA_NAME='heroinformation';")
-        if cursor.fetchall() == ():
+        if 'hero' not in heroJsonStr.keys():  # 这一行的作用是判断读出来的文件内容对不对,如果是正确的内容则在json中有一个key值为hero.
+            print("Hero is not in heroJsonStr")
+            return
+        heroList = heroJsonStr['hero']  # 获取读取的json数据的hero键的值,应该是一个长度为150的json对象列表
+        keys = list(heroList[0].keys())  # 获取hero列表每一个对象的所有key,由于每个对象的key都相同,所以直接取下标为0的hero的key.
+
+        cursor.execute(
+            "SELECT * FROM information_schema.SCHEMATA where SCHEMA_NAME='heroinformation';")  # 查询数据库列表中是否有名为heroinformation的数据库
+
+        if cursor.fetchall() == ():  # 如果查询的结果为一个空元组,则无该数据库,进行创建并添加数据的操作
             create_database()  # 创建hero数据库
             cursor.execute("use heroinformation;")
-
-            if 'hero' not in heroJsonStr.keys():  # 这一行的作用是判断读出来的文件内容对不对,如果是正确的内容则在json中有一个key值为hero.
-                print("Hero is not in heroJsonStr")
-                return
-            heroList = heroJsonStr['hero']  # 获取读取的json数据的hero键的值,应该是一个长度为150的json对象列表
-            keys = list(heroList[0].keys())  # 获取hero列表每一个对象的所有key,由于每个对象的key都相同,所以直接取下标为0的hero的key.
 
             create_table(keys)  # 根据文件中读取出来的hero对象的key值列表创建数据表.
             insert_data('hero', heroList, keys)
@@ -109,8 +133,27 @@ def main():
             for key in other_keys:
                 create_table(None, key)
             insert_other_data(heroJsonStr, other_keys)
-        else:
+
+        else:   # 如果查询有结果则数据库存在,使用该数据库并判断是否更新数据,需要更新则更新数据
             cursor.execute("use heroinformation;")
+
+            fileUpdateTime = heroJsonStr['fileTime']
+            print(fileUpdateTime)
+            queryUpdateTimeSql = 'select fileTime from filetime;'
+            cursor.execute(queryUpdateTimeSql)
+            dataBaseUpdateTime = cursor.fetchone()[0]
+
+            # 将字符串格式化为日期方便进行比对
+            fut = datetime.datetime.strptime(fileUpdateTime, '%Y-%m-%d %H:%M:%S')  # fut是fileUpdateTime的缩写
+            dut = datetime.datetime.strptime(dataBaseUpdateTime, '%Y-%m-%d %H:%M:%S')  # dut是dataBaseUpdateTime的缩写
+
+            total_seconds = (dut - fut).total_seconds()
+
+            if total_seconds > 0.0:
+                for i in range(len(heroList)):
+                    update_data('hero', heroList[i].keys(), heroList[i].values())
+            else:
+                print('Data not updated')
 
 
 if __name__ == '__main__':
