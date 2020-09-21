@@ -39,6 +39,13 @@ def modify_table_type():
 
 
 def insert_data(table, heroList, keys):
+    """
+    :param table: 添加数据的表名,由于目前尚不完善.只能传递\'hero\'值
+    :param heroList: 添加数据的列表,类型为字典.
+    :param keys: 字典的key组,目的是为了获取该字典的值
+    :return: 该函数为添加数据的函数,无返回值
+    """
+
     heroListLen = len(heroList)
     print("heroListLen", heroListLen)
     for i in range(heroListLen):
@@ -60,6 +67,12 @@ def insert_data(table, heroList, keys):
 
 
 def insert_other_data(heroJsonStr, keys):
+    """
+
+    :param heroJsonStr: 使用Json.loads()方法从文件中读取出来的JSON数据.是一个具有四个key的字典
+    :param keys: heroJsonstr的key值组.目的是为了提取对应的值
+    :return:该函数为添加文件名数据、文件更新时间数据、以及版本号进入数据库的函数,无返回值
+    """
     for key in keys:
         data = heroJsonStr[key]
         table = key
@@ -74,6 +87,10 @@ def insert_other_data(heroJsonStr, keys):
 
 
 def table_isExists():
+    """
+    判断表是否存在的函数
+    :return: 如果hero表存在返回True，否则返回false
+    """
     sql = 'show tables;'
     cursor.execute(sql)
     tables = [cursor.fetchall()]
@@ -89,6 +106,13 @@ def table_isExists():
 
 
 def update_data(table, keys, values):
+    """
+    更新数据库中数据的函数
+    :param table: 需要进行更新的表名
+    :param keys: 需要更新的表的字段名
+    :param values: 需要更新的表的值
+    :return: 更新函数，无返回值
+    """
     if table is 'hero':  # 对hero表的更新(以后有时间可以修改为匹配文件中发生更新的行,只对发生更新的行对应的数据进行更新)
         formatData = []
         for key, value in zip(keys, values):
@@ -101,6 +125,8 @@ def update_data(table, keys, values):
         # print(formatData)
 
         updateSql = 'UPDATE ' + table + ' SET ' + formatData + ' WHERE ' + list(keys)[0] + ' = ' + list(values)[0]
+        # 构建更新hero表的sql语句
+
         try:
             if cursor.execute(updateSql):
                 print('Update Successful')
@@ -120,7 +146,14 @@ def update_data(table, keys, values):
 
 
 def main():
-    Spider.getData()
+    """
+    主函数,首先从爬虫中读取数据.然后打开一个保存了爬下来的数据的文件.
+    判断数据文件的内容是否正确.不正确的情况下则直接结束程序.正确时
+    查询数据库是否存在,根据数据库是否存在进行下一步的操作.
+    :return:主函数,无返回值
+    """
+
+    Spider.getHeroData()
     with open("..\\resources\\heroList.json", "r", encoding="utf8") as f:
         heroJsonStr = json.loads(f.read())
 
