@@ -94,15 +94,26 @@ def update_data(table, keys, values):
         for key, value in zip(keys, values):
             if isinstance(value, list):
                 value = value[0]
-            print(type(key))
+            # print(type(key))
             formatData.append(str(key + '=' + '\'' + value + '\''))
         formatData = ",".join(formatData)
-        print(formatData)
+
+        # print(formatData)
+
         updateSql = 'UPDATE ' + table + ' SET ' + formatData + ' WHERE ' + list(keys)[0] + ' = ' + list(values)[0]
         try:
             if cursor.execute(updateSql):
                 print('Update Successful')
                 heroDB.commit()
+        except:
+            print('Update Failed')
+            heroDB.rollback()
+    else:
+        updateSql = 'UPDATE ' + table + ' SET {keys} = \'{values}\''.format(keys=keys, values=values)
+        print(updateSql)
+        try:
+            cursor.execute(updateSql)
+            heroDB.commit()
         except:
             print('Update Failed')
             heroDB.rollback()
@@ -120,7 +131,8 @@ def main():
         keys = list(heroList[0].keys())  # 获取hero列表每一个对象的所有key,由于每个对象的key都相同,所以直接取下标为0的hero的key.
 
         cursor.execute(
-            "SELECT * FROM information_schema.SCHEMATA where SCHEMA_NAME='heroinformation';")  # 查询数据库列表中是否有名为heroinformation的数据库
+            "SELECT * FROM information_schema.SCHEMATA where SCHEMA_NAME='heroinformation';")  #
+        # 查询数据库列表中是否有名为heroinformation的数据库
 
         if cursor.fetchall() == ():  # 如果查询的结果为一个空元组,则无该数据库,进行创建并添加数据的操作
             create_database()  # 创建hero数据库
@@ -137,6 +149,8 @@ def main():
         else:   # 如果查询有结果则数据库存在,使用该数据库并判断是否更新数据,需要更新则更新数据
             cursor.execute("use heroinformation;")
 
+            other_keys = ['version', 'fileName', 'fileTime']
+
             fileUpdateTime = heroJsonStr['fileTime']
             print(fileUpdateTime)
             queryUpdateTimeSql = 'select fileTime from filetime;'
@@ -152,8 +166,12 @@ def main():
             if total_seconds > 0.0:
                 for i in range(len(heroList)):
                     update_data('hero', heroList[i].keys(), heroList[i].values())
+                for t in other_keys:
+                    key = t
+                    value = heroJsonStr[key]
+                    update_data(t, key, value)
             else:
-                print('Data not updated')
+                print('Data needn\'t update')
 
 
 if __name__ == '__main__':
