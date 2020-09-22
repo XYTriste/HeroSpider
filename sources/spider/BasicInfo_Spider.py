@@ -2,6 +2,8 @@ import requests
 
 import json
 
+from file import save_as_file
+
 from selenium import webdriver
 
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,6 +11,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 
 from selenium.webdriver.support import expected_conditions as EC
+
+path = "../../resources/heroList.json"  # 全局变量.指定JSON数据文件路径.一般情况下不要随意更改
 
 
 def getHeroData():
@@ -20,8 +24,8 @@ def getHeroData():
     url = 'https://game.gtimg.cn/images/lol/act/img/js/heroList/hero_list.js'
     response = requests.get(url)
     heroListJson = response.json()
-    with open("../../resources/heroList.json", 'w', encoding='utf-8') as f:
-        f.write(json.dumps(heroListJson, indent=2, ensure_ascii=False))
+
+    save_as_file.save_heroList_as_file(path, heroListJson)
 
 
 def getHeroHeadProfileUrl():  # 获取英雄的头像链接
@@ -40,7 +44,10 @@ def getHeroHeadProfileUrl():  # 获取英雄的头像链接
     headProfileImages = wait.until(EC.presence_of_all_elements_located((By.XPATH, headProfile_xpath)))
 
     headProfileImagesList = [x.get_attribute('src') for x in headProfileImages]
-    return headProfileImagesList
+
+    file = open(path, 'r', encoding='utf-8')
+    heroListJson = json.loads(file.read())
+    save_as_file.insert_headProfileImage_as_file(heroListJson, headProfileImagesList)
 
 
 if __name__ == '__main__':

@@ -154,7 +154,7 @@ def main():
     """
 
     BasicInfo_Spider.getHeroData()
-    with open("../../resources/heroList.json", "r", encoding="utf8") as f:
+    with open(BasicInfo_Spider.path, "r", encoding="utf8") as f:
         heroJsonStr = json.loads(f.read())
 
         if 'hero' not in heroJsonStr.keys():  # 这一行的作用是判断读出来的文件内容对不对,如果是正确的内容则在json中有一个key值为hero.
