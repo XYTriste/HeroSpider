@@ -20,7 +20,7 @@ def getHeroData():
     url = 'https://game.gtimg.cn/images/lol/act/img/js/heroList/hero_list.js'
     response = requests.get(url)
     heroListJson = response.json()
-    with open("..\\resources\\heroList.json", 'w', encoding='utf-8') as f:
+    with open("../../resources/heroList.json", 'w', encoding='utf-8') as f:
         f.write(json.dumps(heroListJson, indent=2, ensure_ascii=False))
 
 
@@ -41,6 +41,7 @@ def getHeroHeadProfileUrl():  # 获取英雄的头像链接
 
     headProfileImagesList = [x.get_attribute('src') for x in headProfileImages]
     return headProfileImagesList
+
 
 if __name__ == '__main__':
     getHeroHeadProfileUrl()

@@ -4,7 +4,7 @@ import json
 
 import re
 
-import Spider
+from spider import BasicInfo_Spider
 
 import datetime
 
@@ -33,7 +33,7 @@ def create_table(keys, table='hero'):  # 创建表的函数
 
 def modify_table_type():
     """ 此处说明:在创建数据表时,由于将所有字段设置成了varchar类型,会导致主键内容被当作字符串进行排序.即默认顺序为: 1 10 101等
-    所以额外增加了一个修改主键类型的函数用于将主键所在的字段类型修改为int """
+    所以额外增加了一个修改主键类型的函数用于将主键所在的字段类型修改为int"""
     sql = 'alter table hero modify column heroId int;'
     cursor.execute(sql)
 
@@ -153,8 +153,8 @@ def main():
     :return:主函数,无返回值
     """
 
-    Spider.getHeroData()
-    with open("..\\resources\\heroList.json", "r", encoding="utf8") as f:
+    BasicInfo_Spider.getHeroData()
+    with open("../../resources/heroList.json", "r", encoding="utf8") as f:
         heroJsonStr = json.loads(f.read())
 
         if 'hero' not in heroJsonStr.keys():  # 这一行的作用是判断读出来的文件内容对不对,如果是正确的内容则在json中有一个key值为hero.
