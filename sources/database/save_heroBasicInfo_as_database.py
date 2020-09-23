@@ -145,6 +145,14 @@ def update_data(table, keys, values):
             heroDB.rollback()
 
 
+def queryBasicInfo(tableName, fieldName):
+    cursor.execute("use heroinformation;")
+    sql = 'SELECT {fieldName} from {tableName}'.format(fieldName=fieldName, tableName=tableName)
+    cursor.execute(sql)
+    result = cursor.fetchall()
+    return result
+
+
 def main():
     """
     主函数,首先从爬虫中读取数据.然后打开一个保存了爬下来的数据的文件.
@@ -207,7 +215,3 @@ def main():
                     update_data(t, key, value)
             else:
                 print('Data needn\'t update')
-
-
-if __name__ == '__main__':
-    main()
