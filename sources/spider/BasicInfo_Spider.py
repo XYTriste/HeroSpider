@@ -12,7 +12,7 @@ from selenium.webdriver.common.by import By
 
 from selenium.webdriver.support import expected_conditions as EC
 
-path = "../../resources/heroList.json"  # 全局变量.指定JSON数据文件路径.一般情况下不要随意更改
+path = "../../resources/BasicInfo/heroList.json"  # 全局变量.指定JSON数据文件路径.一般情况下不要随意更改
 
 
 def getHeroData():
