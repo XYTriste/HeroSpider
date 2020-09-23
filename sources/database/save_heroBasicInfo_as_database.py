@@ -22,7 +22,7 @@ def create_table(keys, table='hero'):  # 创建表的函数
     if table == 'hero':
         # 此处说明:由于暂时的水平有限,所以只能把所有字段都设置为字符型,长度固定,等以后技术提升了再想办法更新.
         sql = "CREATE TABLE IF NOT EXISTS hero("
-        sql += " VARCHAR(60) NOT NULL,".join(keys)
+        sql += " VARCHAR(150) NOT NULL,".join(keys)
         sql += " VARCHAR(255) NOT NULL, PRIMARY KEY (heroId))"
         cursor.execute(sql)
         modify_table_type()
@@ -61,7 +61,7 @@ def insert_data(table, heroList, keys):
                 print('Successful')
                 heroDB.commit()
         except Exception as e:
-            print(e)
+            print(sql)
             print('Failed')
             heroDB.rollback()
 
@@ -154,6 +154,8 @@ def main():
     """
 
     BasicInfo_Spider.getHeroData()
+    BasicInfo_Spider.getHeroHeadProfileUrl()
+
     with open(BasicInfo_Spider.path, "r", encoding="utf8") as f:
         heroJsonStr = json.loads(f.read())
 
