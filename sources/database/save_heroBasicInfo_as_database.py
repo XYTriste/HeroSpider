@@ -51,7 +51,7 @@ def insert_data(table, heroList, keys):
     for i in range(heroListLen):
         attrs = ",".join(heroList[i].keys())
         values = ",".join(
-            '%s' % "\'" + " and ".join(val) + "\'" if isinstance(val, list) else "\'" + val + "\'" for val in
+            '%s' % "\'" + " - ".join(val) + "\'" if isinstance(val, list) else "\'" + val + "\'" for val in
             heroList[i].values())
         # print(values)
         sql = "Insert into {table}({keys}) VALUES ({values})".format(table=table, keys=attrs, values=values)
