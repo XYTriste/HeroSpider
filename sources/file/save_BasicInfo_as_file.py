@@ -1,6 +1,6 @@
-from spider import BasicInfo_Spider
-
 import json
+
+from spider import BasicInfo_Spider
 
 
 def save_heroList_as_file(path, heroListJson):
@@ -31,5 +31,3 @@ def insert_headProfileImage_as_file(heroListJson, headProfileImagesList, fieldNa
 
     with open(BasicInfo_Spider.path, 'w', encoding='utf-8') as f:
         f.write(json.dumps(newJson, indent=2, ensure_ascii=False))
-
-

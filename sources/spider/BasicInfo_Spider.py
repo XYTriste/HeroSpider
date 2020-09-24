@@ -2,7 +2,7 @@ import requests
 
 import json
 
-from file import save_as_file
+from file import save_BasicInfo_as_file
 
 from selenium import webdriver
 
@@ -25,7 +25,7 @@ def getHeroData():
     response = requests.get(url)
     heroListJson = response.json()
 
-    save_as_file.save_heroList_as_file(path, heroListJson)
+    save_BasicInfo_as_file.save_heroList_as_file(path, heroListJson)
 
 
 def getHeroHeadProfileUrl():  # 获取英雄的头像链接
@@ -49,7 +49,7 @@ def getHeroHeadProfileUrl():  # 获取英雄的头像链接
     heroListJson = json.loads(file.read())
 
     field_name = 'headProfileImage' # 将英雄头像链接保存至数据库时的字段名.如无必要不要随意更改
-    save_as_file.insert_headProfileImage_as_file(heroListJson, headProfileImagesList, field_name)
+    save_BasicInfo_as_file.insert_headProfileImage_as_file(heroListJson, headProfileImagesList, field_name)
 
 
 if __name__ == '__main__':
