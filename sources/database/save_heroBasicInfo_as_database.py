@@ -11,17 +11,20 @@ import datetime
 heroDB = pymysql.connect(host='localhost', user='root', password='sa', port=3306)  # 链接数据库
 cursor = heroDB.cursor()  # 获取数据库的游标
 
+heroBasicDataBaseName = 'heroInformation'
+heroBasicInfoName = 'hero'  # 保存了英雄基本信息的表名.一般情况下不需要更改
+
 
 def create_database():  # 创建数据库的函数
     sql = 'CREATE DATABASE IF NOT EXISTS HeroInformation DEFAULT CHARSET utf8'
     cursor.execute(sql)
 
 
-def create_table(keys, table='hero'):  # 创建表的函数
+def create_table(keys, table):  # 创建表的函数
 
     if table == 'hero':
         # 此处说明:由于暂时的水平有限,所以只能把所有字段都设置为字符型,长度固定,等以后技术提升了再想办法更新.
-        sql = "CREATE TABLE IF NOT EXISTS hero("
+        sql = "CREATE TABLE IF NOT EXISTS " + table + "("
         sql += " VARCHAR(150) NOT NULL,".join(keys)
         sql += " VARCHAR(255) NOT NULL, PRIMARY KEY (heroId))"
         cursor.execute(sql)
@@ -31,10 +34,10 @@ def create_table(keys, table='hero'):  # 创建表的函数
         cursor.execute(sql)
 
 
-def modify_table_type():
+def modify_table_type(table, fieldName):
     """ 此处说明:在创建数据表时,由于将所有字段设置成了varchar类型,会导致主键内容被当作字符串进行排序.即默认顺序为: 1 10 101等
     所以额外增加了一个修改主键类型的函数用于将主键所在的字段类型修改为int"""
-    sql = 'alter table hero modify column heroId int;'
+    sql = 'alter table ' + table + ' modify column ' + fieldName + ' int;'
     cursor.execute(sql)
 
 
@@ -99,7 +102,7 @@ def table_isExists():
 
     # print(table_list)
 
-    if 'hero' in table_list:
+    if heroBasicInfoName in table_list:
         return True
     else:
         return False
@@ -113,7 +116,7 @@ def update_data(table, keys, values):
     :param values: 需要更新的表的值
     :return: 更新函数，无返回值
     """
-    if table is 'hero':  # 对hero表的更新(以后有时间可以修改为匹配文件中发生更新的行,只对发生更新的行对应的数据进行更新)
+    if table is heroBasicInfoName:  # 对hero表的更新(以后有时间可以修改为匹配文件中发生更新的行,只对发生更新的行对应的数据进行更新)
         formatData = []
         for key, value in zip(keys, values):
             if isinstance(value, list):
@@ -167,10 +170,10 @@ def main():
     with open(BasicInfo_Spider.path, "r", encoding="utf8") as f:
         heroJsonStr = json.loads(f.read())
 
-        if 'hero' not in heroJsonStr.keys():  # 这一行的作用是判断读出来的文件内容对不对,如果是正确的内容则在json中有一个key值为hero.
+        if heroBasicInfoName not in heroJsonStr.keys():  # 这一行的作用是判断读出来的文件内容对不对,如果是正确的内容则在json中有一个key值为hero.
             print("Hero is not in heroJsonStr")
             return
-        heroList = heroJsonStr['hero']  # 获取读取的json数据的hero键的值,应该是一个长度为150的json对象列表
+        heroList = heroJsonStr[heroBasicInfoName]  # 获取读取的json数据的hero键的值,应该是一个长度为150的json对象列表
         keys = list(heroList[0].keys())  # 获取hero列表每一个对象的所有key,由于每个对象的key都相同,所以直接取下标为0的hero的key.
 
         cursor.execute(
@@ -182,7 +185,7 @@ def main():
             cursor.execute("use heroinformation;")
 
             create_table(keys)  # 根据文件中读取出来的hero对象的key值列表创建数据表.
-            insert_data('hero', heroList, keys)
+            insert_data(heroBasicInfoName, heroList, keys)
 
             other_keys = ['version', 'fileName', 'fileTime']
             for key in other_keys:
