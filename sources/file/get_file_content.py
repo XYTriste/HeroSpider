@@ -1,7 +1,11 @@
 import json
 
+import os
+
 basicInfoFilePath = '..\\..\\resources\\BasicInfo\\heroList.json'
-detailedInfoFilePath = '..\\..\\resources\\DetailedInfo\\{fileName}.json'
+
+detailedInfoDirectoryPath = '..\\..\\resources\\DetailedInfo'
+detailedInfoFilePath = detailedInfoDirectoryPath + '\\{fileName}'
 
 
 def get_basicInfo_content():
@@ -17,3 +21,13 @@ def get_detailedInfo_content(fileName):
     with open(filePath, 'r', encoding='utf-8') as f:
         detailedInfo = json.loads(f.read())
     return detailedInfo
+
+
+def get_all_files():
+    files = os.listdir(detailedInfoDirectoryPath)
+    return files
+
+
+if __name__ == '__main__':
+    for file in get_all_files():
+        print(file)
