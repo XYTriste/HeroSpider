@@ -37,10 +37,12 @@ def create_table(tableName, fieldName, primaryKey=None):
         if tableName == 'spells':
             # 此处判断是因为在json文件中的key为spells时.取出来的filedName为一个list.其中最后一个filed[-1]的值为range.
             # 而range是sql中的一个关键字.所以需要用间隔号包含起来表明它作为创建表的字段名.
+            fieldName.insert(0, 'id')
 
             fieldName[-1] = "`" + fieldName[-1] + "`"
         elif tableName == 'hero':
             # 与上面同理.此时fieldName[1]的值为name.也是sql中的关键字
+            # 10月12更新注释,name不是sql的关键字,但是range是.
 
             fieldName[1] = '`' + fieldName[1] + '`'
 
@@ -49,7 +51,7 @@ def create_table(tableName, fieldName, primaryKey=None):
         sql += " VARCHAR(255) NOT NULL,\n".join(fieldName)
         sql += " VARCHAR(255) NOT NULL, PRIMARY KEY({primaryKey}))"
 
-        sql = sql.format(tableName=tableName, primaryKey=primaryKey)
+        sql = sql.format(tableName=tableName, primaryKey=(primaryKey if tableName != 'spells' else 'id'))
 
         # print(sql)
 
@@ -61,13 +63,15 @@ def create_table(tableName, fieldName, primaryKey=None):
 
         if tableName != 'hero':
             # 同样是因为不够灵活的缘故.在创建表的时候不便设置外键.所以添加判断为除了hero以外的表添加对hero表中的heroId字段的外键映射.
-            #modify_field_type(tableName=tableName, fieldName=fieldName[0])
+            # modify_field_type(tableName=tableName, fieldName=fieldName[0])
             modify_field_attr(tableName)
 
     else:
         sql += "({fieldName} VARCHAR(30) NOT NULL)"
         sql = sql.format(tableName=tableName, fieldName=fieldName)
         cursor.execute(sql)
+
+    print('Table {tableName} is created.'.format(tableName=tableName))
 
 
 def modify_field_type(tableName, fieldName):
@@ -101,6 +105,10 @@ def modify_field_attr(tableName, majorTableName='hero', fieldName='heroId'):
 
 def insert_data(tableName, fieldName, values):
     sql = 'Insert into {tableName}({fieldName}) values ({values})'
+
+    if re.search(',range', fieldName) is not None:
+        # 特殊判断,与创建表时的问题相同.range作为sql的关键字.必须使用分隔符括起来才不会有sql语法错误.
+        fieldName = fieldName.replace('range', '`range`')
 
     sql = sql.format(tableName=tableName, fieldName=fieldName, values=values)
     # print(sql)
@@ -174,8 +182,8 @@ if __name__ == '__main__':
                                         if isinstance(val, list) else "\'" + val + "\'" for val in dataValuesList)
                 insert_data(tableName, dataKeys, dataValues)
 
-            elif tableName == 'skins':
-                dataKeysList = fileContent[key][0].keys()
+            elif tableName == 'skins' or tableName == 'spells':
+                dataKeysList = list(fileContent[key][0].keys())
                 dataValuesList = fileContent[key]
 
                 dataKeys = ",".join(dataKeysList)
@@ -184,5 +192,9 @@ if __name__ == '__main__':
                     for dataKey in dataKeysList:
                         dataValue = dataValues[dataKey]
                         value.append(dataValue)
-                    values = ",\n".join('%s' % "\'" + val + "\'" for val in value)
+                    try:
+                        values = ",\n".join('%s' % "\'" + " - ".join(val) + "\'"
+                                            if isinstance(val, list) else "\'" + str(val) + "\'" for val in value)
+                    except:
+                        print(value)
                     insert_data(tableName, dataKeys, values)
