@@ -74,7 +74,6 @@ def create_table(tableName, fieldName, primaryKey=None):
             # modify_field_type(tableName=tableName, fieldName=fieldName[0])
             modify_field_attr(tableName)
 
-
     else:
         sql += "({fieldName} VARCHAR(30) NOT NULL)"
         sql = sql.format(tableName=tableName, fieldName=fieldName)
@@ -119,6 +118,20 @@ def modify_field_attr(tableName, majorTableName='hero', fieldName='heroId'):
 
 
 def insert_data(tableName, fieldName, values, isSpeclia=False):
+    """
+    添加数据的函数.整体逻辑是首先初始化一个可格式化的sql语句字符串.
+    然后通过判断表名来判断数据要插入的是否是一张特殊表(特殊表与普通表的区别就是特殊表的内容是每个文件都具有的且值相同.所以特殊表只进行一次存储)
+    如果是特殊表且表不为空则表明数据表已有特殊数据.不需要进行插入.
+    接着对fieldName参数进行模式匹配.这里的作用是判断字段名中是否包含了range.range作为sql的关键字,被用作字段名是需要使用分隔符(`)包含起来.
+    该if对参数进行了匹配且进行了更正.
+    最后将字符串格式化并尝试执行sql语句.执行成功则cursor.execute()返回非None.进行提交操作.否则进行异常处理并对数据库回滚.
+
+    :param tableName: 类型为str,表示插入数据的表的表名.
+    :param fieldName: 类型为str,表示插入数据的表的字段名.
+    :param values: 类型为str.表示插入的表的值.
+    :param isSpeclia: 类型为布尔值.表示插入的是否是特殊表.默认情况下值为False.表明插入的是一张普通表.
+    :return: 插入数据的函数.无返回值.
+    """
     global heroDB
     global cursor
     global spells_id
@@ -126,7 +139,7 @@ def insert_data(tableName, fieldName, values, isSpeclia=False):
     sql = 'Insert into {tableName}({fieldName}) values ({values})'
 
     if isSpeclia:
-        if table_isEmpty(tableName):
+        if not table_isEmpty(tableName):
             return
 
     if re.search(',range', fieldName) is not None:
@@ -172,24 +185,24 @@ def table_isExists(tableName):
 
 
 def table_isEmpty(tableName):
-    sql = 'select * from {tableName}'.format(tableName=tableName)
-    if cursor.execute(sql) > 0:
+    """
+    判断表是否为空的函数,用于判断存储了相同信息的特殊表中是否有内容.如果有内容的话则不需要再存一遍了.
+    :param tableName: 类型为str,表示需要判断的表的名称.
+    :return: 返回表是否为空.是则返回True,否则返回False
+    """
+    sql = 'select * from {tableName}'.format(tableName=tableName)  # 从参数tableName作为表名的表中查询所有数据
+    if cursor.execute(sql) > 0:  # 如果查询到的结果条数大于0则非空.
         return False
     else:
         return True
 
 
-if __name__ == '__main__':
-
-    create_database()
-    cursor.execute("use " + DATABASE_NAME + ";")
-
-    files = get_file_content.get_all_files()
-
-    heroListJson = get_file_content.get_detailedInfo_content(files[0])
-
-    keys = list(heroListJson.keys())
-
+def create_all_table(keys):
+    """
+    创建所有表的函数.根据参数keys的值来逐个遍历并创建表.
+    :param keys: 类型为list.存储了所有的表名.
+    :return: 创建表的函数,无返回值
+    """
     if not table_isExists(keys[0]):
         for key in keys:
             tableName = key
@@ -207,6 +220,14 @@ if __name__ == '__main__':
 
             create_table(tableName, fieldName, primaryKey)
 
+
+def insert_all_data(files, keys):
+    """
+    添加所有表的数据的函数.根据文件名读取内容并取出.逐个存入表中.keys参数是表的名称.根据表的名称的不同所做的操作也不同.
+    :param files: 类型为list.包含所有的需要插入的表的数据文件的名称.
+    :param keys: 类型为list.包含所有的表的名称.
+    :return: 插入数据函数无返回值.
+    """
     for file in files:
         fileContent = get_file_content.get_detailedInfo_content(file)
         for key in keys:
@@ -237,8 +258,23 @@ if __name__ == '__main__':
                     except Exception as e:
                         print(value)
                     insert_data(tableName, dataKeys, values)
+
             else:
                 dataKeys = key
-                dataValue = fileContent[key]
+                dataValue = "\'" + fileContent[key] + "\'"
 
-                insert_data(tableName, dataKeys, dataValue, True)
+                insert_data(tableName, dataKeys, dataValue, True if tableName != 'fileName' else False)
+
+
+if __name__ == '__main__':
+    create_database()
+    cursor.execute("use " + DATABASE_NAME + ";")
+
+    files = get_file_content.get_all_files()
+
+    heroListJson = get_file_content.get_detailedInfo_content(files[0])
+    keys = list(heroListJson.keys())
+
+    create_all_table(keys)
+
+    insert_all_data(files, keys)
