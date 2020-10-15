@@ -4,6 +4,8 @@ import pymysql
 
 from file import get_file_content
 
+import datetime
+
 heroDB = pymysql.connect(host='localhost', user='root', password='sa', port=3306)  # 链接数据库
 cursor = heroDB.cursor()  # 获取数据库的游标
 
@@ -162,6 +164,49 @@ def insert_data(tableName, fieldName, values, isSpeclia=False):
         heroDB.rollback()
 
 
+def data_need_update(fileUpdateTime, fieldName='fileTime'):
+    """
+
+    :param fileUpdateTime: 类型为str.可用datetime包格式化为日期时间.表示文件更新的时间.用于比对数据库的更新时间判断是否需要更新.
+    :param fieldName: 从数据库中查询时间的字段名.由于特殊性.存储时间的表名与它的列名一致.
+    :return: 当数据库时间与文件更新时间不一致时返回True.否则返回False.
+    """
+    global cursor
+
+    tableName = fieldName
+    queryUpdateTimeFromDatabase = 'select {fieldName} from {tableName}'
+    queryUpdateTimeFromDatabase = queryUpdateTimeFromDatabase.format(tableName=tableName, fieldName=fieldName)
+
+    cursor.execute(queryUpdateTimeFromDatabase)
+    databaseUpdateTime = cursor.fetchone()[0]
+
+    fut = datetime.datetime.strptime(fileUpdateTime,
+                                     '%Y-%m-%d %H:%M:%S')
+    dut = datetime.datetime.strptime(databaseUpdateTime,
+                                     '%Y-%m-%d %H:%M:%S')
+
+    # print('fut:', fut)
+    # print('dut', dut)
+    total_seconds = (fut - dut).total_seconds()
+
+    if total_seconds > 0.0:
+        return True
+    else:
+        return False
+
+
+def update_data(tableName, formatDate, fieldName, value):
+    sql = 'update {tableName} set {formatDate} where {fieldName} = {values}'
+
+    try:
+        if cursor.execute(sql):
+            print('Update Successful')
+            heroDB.commit()
+    except:
+        print('Update Failed')
+        heroDB.rollback()
+
+
 def table_isExists(tableName):
     """
     判断表是否存在的函数
@@ -266,8 +311,32 @@ def insert_all_data(files, keys):
                 insert_data(tableName, dataKeys, dataValue, True if tableName != 'fileName' else False)
 
 
+def update_all_date(files, keys):
+    for file in files:
+        fileContent = get_file_content.get_detailedInfo_content(file)
+
+        for key in keys:
+            tableName = key
+            if tableName == 'hero':
+                fieldNames = list(fileContent[key].keys())
+                values = list(fileContent[key].values())
+                # print(fieldNames, values)
+
+                if len(fieldNames) != len(values):
+                    raise Exception('数据完整性有问题.')
+
+                formatData = []
+                for key, value in zip(fieldNames, values):
+                    if isinstance(value, list):
+                        value = "-".join(value)
+                    formatData.append(str(key + '=' + '\'' + value + '\''))
+
+                formatData = ",".join(formatData)
+                update_data(tableName, formatData,)
+
+
 if __name__ == '__main__':
-    create_database()
+    # create_database()
     cursor.execute("use " + DATABASE_NAME + ";")
 
     files = get_file_content.get_all_files()
@@ -275,6 +344,7 @@ if __name__ == '__main__':
     heroListJson = get_file_content.get_detailedInfo_content(files[0])
     keys = list(heroListJson.keys())
 
-    create_all_table(keys)
-
-    insert_all_data(files, keys)
+    # create_all_table(keys)
+    #
+    # insert_all_data(files, keys)
+    update_all_date(files, keys)

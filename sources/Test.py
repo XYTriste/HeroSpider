@@ -70,4 +70,3 @@
 #         # print("更新后长度:", len(fileContent['hero']))
 #         fileObj.write(json.dumps(fileContent, indent=2, ensure_ascii=False))
 
-
