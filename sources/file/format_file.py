@@ -1,14 +1,18 @@
 import json
 from file import get_file_content
 
-HERO_BASIC_INFO_PATH = '..\\..\\resources\\BasicInfo\\heroList.json'
-HERO_DETAILED_INFO_PATH = '..\\..\\resources\\DetailedInfo\\1.json'
+HERO_DETAILED_INFO_PATH = get_file_content.detailedInfoFilePath.format(fileName='1.json')
+# 格式化的字符串.表示第一个英雄详细信息文件的完整路径.用于比对文件内容并进行合并.
 
-FILE_PATH = '..\\..\\resources\\DetailedInfo\\'
+FILE_PATH = '..\\resources\\DetailedInfo\\' # 英雄详细信息文件所在的目录.用于合并后的内容保存.
 
 
 def merge_file():
-    heroBasicInfo = open(HERO_BASIC_INFO_PATH, 'r', encoding='utf-8')
+    """
+    比对文件内容并进行合并
+    :return: 无返回值.
+    """
+    heroBasicInfo = open(get_file_content.basicInfoFilePath, 'r', encoding='utf-8')
     heroDetailedInfo = open(HERO_DETAILED_INFO_PATH, 'r', encoding='utf-8')
 
     heroBasicInfoTuple = json.loads(heroBasicInfo.read())

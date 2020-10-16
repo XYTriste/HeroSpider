@@ -6,8 +6,7 @@ import json
 PATH = '..\\resources\\DetailedInfo\\{fileName}.json'
 detail_info_url = 'https://game.gtimg.cn/images/lol/act/img/js/hero/{heroId}.js'
 """
-此处定义了三个全局变量,第一个All_heroId类型为元组.包含了从数据库中查询出来的所有的英雄的id.用于和第三个全局变量detail_info_url
-进行组合格式化成为链接提取所有英雄的详细信息.
+此处定义了两个全局变量.第一个表示存储的文件的路径.
 第二个全局变量path类型为str.表示抓取下来的JSON文件的存储路径.一般情况下没有必要不要去更改.
 """
 
@@ -41,6 +40,11 @@ def getDetailedInfo(start, end, All_heroId):
 
 
 def call_thread(All_heroId):
+    """
+    创建线程的函数.参数为所有英雄的id.
+    :param All_heroId: 类型为list.保存了所有英雄的heroId.该值从文件中读取.
+    :return: 创建线程的函数无返回值.
+    """
     threads = []
     threadsLen = len(All_heroId)
     threadsNums = int(threadsLen / 10)
@@ -52,6 +56,7 @@ def call_thread(All_heroId):
         start = end
         end += 10
         thread.start()
+        thread.join()
         if threadsLen - end < 10:
             end = threadsLen
 

@@ -7,6 +7,11 @@ FIELD_NAME = 'headProfileImage'  # 将英雄头像链接保存至数据库时的
 
 
 def save_heroList_as_file(heroListJson):
+    """
+    将参数中传来的内容保存至文件.
+    :param heroListJson: 类型为str.从网络中读取出来的json数据.
+    :return: 保存内容的函数,无返回值.
+    """
     with open(PATH, 'w', encoding='utf-8') as f:
         f.write(json.dumps(heroListJson, indent=2, ensure_ascii=False))
 

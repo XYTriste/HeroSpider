@@ -196,6 +196,15 @@ def data_need_update(fileUpdateTime, fieldName='fileTime'):
 
 
 def update_data(tableName, formatDate, fieldName, value, isSpecial=False):
+    """
+        更新数据库的函数.使用已经格式化好的数据根据满足的条件来进行数据更新.
+        :param tableName: 类型为str.表示进行更新数据的表名
+        :param formatDate: 类型为str.内容类似于(字段名 = 值,...)的形式.用于更新后的数据
+        :param fieldName: 类型为str.一般是这张表的主键.用于筛选更新的是哪个字段.
+        :param value: 类型为str.用于筛选的主键字段的值.
+        :param isSpecial: 类型为bool.用于判断进行更新的是否是特殊表.特殊表使用的更新语句与普通表不同.
+        :return: 更新函数无返回值.
+    """
     if not isSpecial:
         sql = 'update {tableName} set {formatDate} where {fieldName} = {value}'
         sql = sql.format(tableName=tableName, formatDate=formatDate, fieldName=fieldName, value=value)
@@ -210,6 +219,20 @@ def update_data(tableName, formatDate, fieldName, value, isSpecial=False):
         print(e)
         print('Update Failed')
         heroDB.rollback()
+
+
+def database_isExists():
+    """
+    判断数据库是否存在的函数.用于主函数中.如果数据库不存在则需要创建函数.
+    :return: 如果数据库存在返回True.否则返回False.
+    """
+    global cursor
+    sql = 'select * from information_schema.SCHEMATA where SCHEMA_NAME = \"{DATABASE_NAME}\"'
+    sql = sql.format(DATABASE_NAME=DATABASE_NAME)
+    if cursor.execute(sql) > 0:
+        return True
+    else:
+        return False
 
 
 def table_isExists(tableName):
@@ -247,7 +270,7 @@ def table_isEmpty(tableName):
         return True
 
 
-def create_all_table(keys):
+def create_all_table(heroListJson, keys):
     """
     创建所有表的函数.根据参数keys的值来逐个遍历并创建表.
     :param keys: 类型为list.存储了所有的表名.
@@ -317,6 +340,12 @@ def insert_all_data(files, keys):
 
 
 def update_all_date(files, keys):
+    """
+    更新所有表的数据的函数.挨个遍历文件获取其中的内容用于更新.
+    :param files: 类型为list.存储了/resources/Detailed路径下的所有文件的名称.
+    :param keys: 类型为list.存储了文件中的所有键.
+    :return:更新函数无返回值.
+    """
     for file in files:
         fileContent = get_file_content.get_detailedInfo_content(file)
 
@@ -379,6 +408,18 @@ def update_all_date(files, keys):
             else:
                 formatData = str(key + '=' + '\'' + fileContent[key] + '\'')
                 update_data(tableName, formatData, None, None, True)
+
+
+def use_database():
+    """
+    用于在数据库中指定操作的是哪个数据库
+    :return: 无返回值.
+    """
+    global cursor
+
+    sql = 'use {DATABASE_NAME}'
+    sql = sql.format(DATABASE_NAME=DATABASE_NAME)
+    cursor.execute(sql)
 
 
 if __name__ == '__main__':

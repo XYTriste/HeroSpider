@@ -70,3 +70,11 @@
 #         # print("更新后长度:", len(fileContent['hero']))
 #         fileObj.write(json.dumps(fileContent, indent=2, ensure_ascii=False))
 
+# from file import get_file_content
+# files = get_file_content.get_all_files()
+# heroListJson = get_file_content.get_detailedInfo_content(files[0])
+import os
+print(os.listdir('..\\resources\\DetailedInfo')[0])
+
+# print(heroListJson['fileTime'])
+
