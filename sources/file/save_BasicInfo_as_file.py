@@ -2,13 +2,16 @@ import json
 
 from spider import BasicInfo_Spider
 
+PATH = "../resources/BasicInfo/heroList.json"  # 全局变量.指定JSON数据文件路径.一般情况下不要随意更改
+FIELD_NAME = 'headProfileImage'  # 将英雄头像链接保存至数据库时的字段名.如无必要不要随意更改
 
-def save_heroList_as_file(path, heroListJson):
-    with open(BasicInfo_Spider.path, 'w', encoding='utf-8') as f:
+
+def save_heroList_as_file(heroListJson):
+    with open(PATH, 'w', encoding='utf-8') as f:
         f.write(json.dumps(heroListJson, indent=2, ensure_ascii=False))
 
 
-def insert_headProfileImage_as_file(heroListJson, headProfileImagesList, fieldName):
+def insert_headProfileImage_as_file(heroListJson, headProfileImagesList):
     """
     将英雄头像的链接保存到抓取下来的JSON文件中.首先将key为hero的值提取出来.结果为一个类型为列表的heroList
     列表中的每一个元素的类型为一个元组.分别是每个英雄的信息.遍历这个列表并向每个元组插入一个键值对.最后读取文件中
@@ -22,12 +25,12 @@ def insert_headProfileImage_as_file(heroListJson, headProfileImagesList, fieldNa
     heroList = heroListJson['hero']
     if len(heroList) == len(headProfileImagesList):
         for i in range(len(heroList)):
-            heroList[i][fieldName] = headProfileImagesList[i]
+            heroList[i][FIELD_NAME] = headProfileImagesList[i]
 
     newJson = {'hero': heroList}
     for key in heroListJson.keys():
         if key is not 'hero':
             newJson[key] = heroListJson[key]
 
-    with open(BasicInfo_Spider.path, 'w', encoding='utf-8') as f:
+    with open(PATH, 'w', encoding='utf-8') as f:
         f.write(json.dumps(newJson, indent=2, ensure_ascii=False))

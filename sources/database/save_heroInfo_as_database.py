@@ -195,14 +195,19 @@ def data_need_update(fileUpdateTime, fieldName='fileTime'):
         return False
 
 
-def update_data(tableName, formatDate, fieldName, value):
-    sql = 'update {tableName} set {formatDate} where {fieldName} = {values}'
-
+def update_data(tableName, formatDate, fieldName, value, isSpecial=False):
+    if not isSpecial:
+        sql = 'update {tableName} set {formatDate} where {fieldName} = {value}'
+        sql = sql.format(tableName=tableName, formatDate=formatDate, fieldName=fieldName, value=value)
+    else:
+        sql = 'update {tableName} set {formatDate}'
+        sql = sql.format(tableName=tableName, formatDate=formatDate)
     try:
         if cursor.execute(sql):
             print('Update Successful')
             heroDB.commit()
-    except:
+    except Exception as e:
+        print(e)
         print('Update Failed')
         heroDB.rollback()
 
@@ -332,7 +337,48 @@ def update_all_date(files, keys):
                     formatData.append(str(key + '=' + '\'' + value + '\''))
 
                 formatData = ",".join(formatData)
-                update_data(tableName, formatData,)
+                fieldName = fieldNames[0]
+                value = values[0]
+                update_data(tableName, formatData, fieldName, value)
+            elif tableName == 'skins':
+                datas = fileContent[key]
+                for data in datas:
+                    fieldNames = list(data.keys())
+                    values = list(data.values())
+                    formatData = []
+                    for key, value in zip(fieldNames, values):
+                        if isinstance(value, list):
+                            value = "-".join(value)
+                        formatData.append(str(key + '=' + '\'' + value + '\''))
+
+                formatData = ",".join(formatData)
+                fieldName = fieldNames[0]
+                value = values[0]
+                update_data(tableName, formatData, fieldName, value)
+            elif tableName == 'spells':
+                datas = fileContent[key]
+                for data in datas:
+                    fieldNames = list(data.keys())
+                    values = list(data.values())
+                    formatData = []
+
+                    fieldNames[fieldNames.index('range')] = "`" + fieldNames[fieldNames.index('range')] + "`"
+
+                    for key, value in zip(fieldNames, values):
+                        if isinstance(value, list):
+                            value = "-".join(value)
+                        elif isinstance(value, bool):
+                            value = "0"
+                        formatData.append(str(key + '=' + '\'' + value + '\''))
+
+                    formatData = ",".join(formatData)
+                    fieldName = fieldNames[0]
+                    value = values[0]
+
+                    update_data(tableName, formatData, fieldName, value)
+            else:
+                formatData = str(key + '=' + '\'' + fileContent[key] + '\'')
+                update_data(tableName, formatData, None, None, True)
 
 
 if __name__ == '__main__':

@@ -1,10 +1,9 @@
 import threading
-import database.save_heroBasicInfo_as_database
 from spider import DetailedInfo_Spider
+from file import get_file_content
 import json
 
-All_heroId = database.save_heroBasicInfo_as_database.queryBasicInfo('hero', 'heroId')
-path = '..\\..\\resources\\DetailedInfo\\{fileName}.json'
+PATH = '..\\resources\\DetailedInfo\\{fileName}.json'
 detail_info_url = 'https://game.gtimg.cn/images/lol/act/img/js/hero/{heroId}.js'
 """
 此处定义了三个全局变量,第一个All_heroId类型为元组.包含了从数据库中查询出来的所有的英雄的id.用于和第三个全局变量detail_info_url
@@ -24,7 +23,7 @@ def save_heroDetailedInfo_as_file(detail_info_json, filePath):
         file_object.write(json.dumps(detail_info_json, indent=2, ensure_ascii=False))
 
 
-def getDetailedInfo(start, end):
+def getDetailedInfo(start, end, All_heroId):
     """
     线程的回调方法.用于获取英雄详细信息的JSON数据并保存在文件中.
     :param start: 参数start,类型为int,表示从第几个开始提取
@@ -32,23 +31,23 @@ def getDetailedInfo(start, end):
     :return: 无返回值.
     """
     for i in range(start, end):
-        heroId = All_heroId[i][0]
+        heroId = All_heroId[i]
 
         url = detail_info_url.format(heroId=heroId)
         detail_info_json = DetailedInfo_Spider.get_DetailedInfo_Json(url)
 
-        filePath = path.format(fileName=heroId)
+        filePath = PATH.format(fileName=heroId)
         save_heroDetailedInfo_as_file(detail_info_json, filePath)
 
 
-def call_thread():
+def call_thread(All_heroId):
     threads = []
     threadsLen = len(All_heroId)
     threadsNums = int(threadsLen / 10)
     start = 0
     end = 10
     for i in range(threadsNums):
-        thread = threading.Thread(target=getDetailedInfo, args=(start, end))
+        thread = threading.Thread(target=getDetailedInfo, args=(start, end, All_heroId))
         threads.append(thread)
         start = end
         end += 10
@@ -58,7 +57,8 @@ def call_thread():
 
 
 def main():
-    call_thread()
+    All_heroId = get_file_content.get_all_heroId()
+    call_thread(All_heroId)
 
 
 if __name__ == '__main__':

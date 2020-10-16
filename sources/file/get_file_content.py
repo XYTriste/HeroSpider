@@ -2,9 +2,9 @@ import json
 
 import os
 
-basicInfoFilePath = '..\\..\\resources\\BasicInfo\\heroList.json'
+basicInfoFilePath = '..\\resources\\BasicInfo\\heroList.json'
 
-detailedInfoDirectoryPath = '..\\..\\resources\\DetailedInfo'
+detailedInfoDirectoryPath = '..\\resources\\DetailedInfo'
 detailedInfoFilePath = detailedInfoDirectoryPath + '\\{fileName}'
 
 
@@ -26,6 +26,15 @@ def get_detailedInfo_content(fileName):
 def get_all_files():
     files = os.listdir(detailedInfoDirectoryPath)
     return files
+
+
+def get_all_heroId():
+    basicInfo = get_basicInfo_content()
+    All_hero = basicInfo['hero']
+    All_heroId = []
+    for hero in All_hero:
+        All_heroId.append(hero['heroId'])
+    return All_heroId
 
 
 if __name__ == '__main__':
