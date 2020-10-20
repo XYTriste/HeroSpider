@@ -17,7 +17,7 @@ def getHeroData():
     """
     从指定链接中保存内容.链接是使用Ajax技术从网页中保存出来的.访问该链接可以获得一个
     保存了所有英雄部分信息的JSON对象
-    :return: 抓取JSON数据的函数,返回格式化为字符串的json数据
+    :return: 抓取JSON数据的函数,返回格式化为dict的json数据
     """
     url = 'https://game.gtimg.cn/images/lol/act/img/js/heroList/hero_list.js'
     response = requests.get(url)
@@ -42,9 +42,6 @@ def getHeroHeadProfileUrl():  # 获取英雄的头像链接
     headProfileImages = wait.until(EC.presence_of_all_elements_located((By.XPATH, headProfile_xpath)))
 
     headProfileImagesList = [x.get_attribute('src') for x in headProfileImages]
-
-    file = open(save_BasicInfo_as_file.PATH, 'r', encoding='utf-8')
-    heroListJson = json.loads(file.read())
 
     return headProfileImagesList
 
