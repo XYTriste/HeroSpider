@@ -67,8 +67,8 @@ def database_operation():
 
 def main():
     file_operation()
-    time.sleep(3)
-    database_operation()
+    # time.sleep(3)
+    # database_operation()
 
 
 if __name__ == '__main__':

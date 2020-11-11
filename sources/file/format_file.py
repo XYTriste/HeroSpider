@@ -1,10 +1,11 @@
 import json
+import re
 from file import get_file_content
 
 HERO_DETAILED_INFO_PATH = get_file_content.detailedInfoFilePath.format(fileName='1.json')
 # 格式化的字符串.表示第一个英雄详细信息文件的完整路径.用于比对文件内容并进行合并.
 
-FILE_PATH = '..\\resources\\DetailedInfo\\' # 英雄详细信息文件所在的目录.用于合并后的内容保存.
+FILE_PATH = '..\\resources\\DetailedInfo\\'  # 英雄详细信息文件所在的目录.用于合并后的内容保存.
 
 
 def merge_file():
@@ -31,6 +32,7 @@ def merge_file():
             differentKeys.append(i)
 
     files = get_file_content.get_all_files()
+    files = strSort(files)
 
     number = 0
     for file in files:
@@ -46,8 +48,26 @@ def merge_file():
             for dk in differentKeys:
                 fileContent['hero'][dk] = heroInfoAsBasic[number][dk]
 
+            number += 1
+
             print("更新后长度:", len(fileContent['hero']))
             file_object.write(json.dumps(fileContent, indent=2, ensure_ascii=False))
+
+
+def sort_key(s):
+    # 排序关键字匹配
+    # 匹配开头数字序号
+    if s:
+        try:
+            c = re.findall('^\d+', s)[0]
+        except:
+            c = -1
+        return int(c)
+
+
+def strSort(fileList):
+    fileList.sort(key=sort_key)
+    return fileList
 
 
 if __name__ == '__main__':
